@@ -4,9 +4,9 @@
 # ------------------------------------------------------------
 
 # Kernel
-KERNEL_NAME="MilkKernel"
-KERNEL_GIT="https://github.com/SchweGELBin/kernel_milk_davinci.git"
-KERNEL_BRANCH="vantom-14"
+KERNEL_NAME="CazKernel"
+KERNEL_GIT="https://github.com/PixelOS-Devices/kernel_xiaomi_sm6150.git"
+KERNEL_BRANCH="fifteen"
 KERNEL_TYPE="vantom"
 
 # KernelSU
