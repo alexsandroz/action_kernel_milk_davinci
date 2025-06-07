@@ -11,7 +11,7 @@ KERNEL_TYPE="vantom"
 
 # KernelSU
 KERNELSU_REPO="tiann/KernelSU"
-KSU_ENABLED="false"
+KSU_ENABLED="true"
 KSU_TARGET="v0.9.5"
 
 # Anykernel3
