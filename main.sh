@@ -152,11 +152,6 @@ else
     sed -i "s/^CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION=\"-$KERNEL_NAME\"/" $DEVICE_DEFCONFIG_FILE
 fi
 
-msg "Next-SUSFS"
-if [[ $KSU_ENABLED == "true" ]]; then
-    curl -LSs "https://raw.githubusercontent.com/$KERNELSU_REPO/next-susfs/kernel/setup.sh" | bash -s next-susfs
-fi
-
 # Build
 msg "Build"
 
