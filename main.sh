@@ -112,7 +112,7 @@ CLANG_VERSION=${CLANG_VERSION::-3} # May get removed later
 LLD_VERSION="$($CLANG_DIR/ld.lld --version | head -n 1 | cut -f1 -d "(" | sed 's/.$//')"
 
 msg "Kernel"
-	git clone --depth=1 $KERNEL_GIT -b $KERNEL_BRANCH $KERNEL_DIR
+git clone --depth=1 $KERNEL_GIT -b $KERNEL_BRANCH $KERNEL_DIR
 
 msg "Applying Patches"
 cd $KERNEL_DIR
@@ -133,7 +133,7 @@ cd $KERNEL_DIR
 
 msg "KernelSU"
 if [[ $KSU_ENABLED == "true" ]]; then
-		curl -LSs "https://raw.githubusercontent.com/$KERNELSU_REPO/main/kernel/setup.sh" | bash -s $KSU_TARGET
+    curl -LSs "https://raw.githubusercontent.com/$KERNELSU_REPO/main/kernel/setup.sh" | bash -s $KSU_TARGET
 	
     echo "CONFIG_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
     echo "CONFIG_HAVE_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
@@ -177,7 +177,9 @@ LLVM_IAS=1"
 
 rm -rf out
 
-make O=out $args "$COMMON_DEFCONFIG"
+if [[ ! $COMMON_DEFCONFIG == "" ]]; then
+    make O=out $args "$COMMON_DEFCONFIG"
+fi    
 make O=out $args "$DEVICE_DEFCONFIG"
 
 make O=out $args kernelversion
