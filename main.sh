@@ -5,7 +5,7 @@
 set -e
 
 # Kernel
-KERNEL_NAME="CazKernel"
+KERNEL_NAME="cazkernel"
 KERNEL_GIT="https://github.com/PixelOS-Devices/kernel_xiaomi_sm6150.git"
 KERNEL_BRANCH="fifteen"
 KERNEL_TYPE="vantom"
@@ -204,7 +204,7 @@ cp $DTBO .
 # Archive
 mkdir -p $WORKDIR/out
 if [[ $KSU_ENABLED == "true" ]]; then
-  ZIP_NAME="$KERNEL_NAME-KSU-Next.zip"
+  ZIP_NAME="$KERNEL_NAME-KSU.zip"
 else
   ZIP_NAME="$KERNEL_NAME-NonKSU.zip"
 fi
