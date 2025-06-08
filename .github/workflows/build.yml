@@ -8,7 +8,7 @@ on:
         type: boolean
         default: true
       Build_NonKSU:
-        required: true
+        required: false
         type: boolean
         default: true
       Build_Manager:
@@ -18,11 +18,11 @@ on:
       Kernel_Git:
         required: true
         type: string
-        default: https://github.com/SchweGELBin/kernel_milk_davinci.git
+        default: https://github.com/PixelOS-Devices/kernel_xiaomi_sm6150.git
       Kernel_Branch:
         required: true
         type: string
-        default: vantom-14
+        default: fifteen
       Kernel_Type:
         required: true
         type: string
