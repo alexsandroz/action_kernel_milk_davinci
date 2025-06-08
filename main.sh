@@ -131,15 +131,15 @@ TITLE=$KERNEL_NAME-$KERNEL_VERSION
 
 cd $KERNEL_DIR
 
-msg "KernelSU"
+msg "KernelSU-Next"
 if [[ $KSU_ENABLED == "true" ]]; then
-    curl -LSs "https://raw.githubusercontent.com/$KERNELSU_REPO/main/kernel/setup.sh" | bash -s $KSU_TARGET
-	
+	curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
+
     echo "CONFIG_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
     echo "CONFIG_HAVE_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
     echo "CONFIG_KPROBE_EVENTS=y" >> $DEVICE_DEFCONFIG_FILE
 
-    KSU_GIT_VERSION=$(cd KernelSU && git rev-list --count HEAD)
+    KSU_GIT_VERSION=$(cd KernelSU-Next && git rev-list --count HEAD)
     KERNELSU_VERSION=$(($KSU_GIT_VERSION + 10200))
     msg "KernelSU Version: $KERNELSU_VERSION"
 
@@ -198,7 +198,7 @@ cp $DTBO .
 # Archive
 mkdir -p $WORKDIR/out
 if [[ $KSU_ENABLED == "true" ]]; then
-  ZIP_NAME="$KERNEL_NAME-KSU.zip"
+  ZIP_NAME="$KERNEL_NAME-KSU-Next.zip"
 else
   ZIP_NAME="$KERNEL_NAME-NonKSU.zip"
 fi
@@ -220,7 +220,7 @@ echo "
 <br>
 
 - **[Kernel]($KERNEL_SOURCE) Version**: $KERNEL_VERSION
-- **[KernelSU]($KERNELSU_SOURCE) Version**: $KERNELSU_VERSION
+- **[KernelSU-Next]($KERNELSU_SOURCE) Version**: $KERNELSU_VERSION
 
 <br>
 
