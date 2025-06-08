@@ -8,9 +8,9 @@ on:
         type: boolean
         default: true
       Build_NonKSU:
-        required: false
+        required: true
         type: boolean
-        default: true
+        default: false
       Build_Manager:
         required: true
         type: boolean
