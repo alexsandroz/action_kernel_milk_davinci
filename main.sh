@@ -115,7 +115,7 @@ msg "Kernel"
 	git clone --depth=1 $KERNEL_GIT -b $KERNEL_BRANCH $KERNEL_DIR
 
 msg "Applying Patches"
-$KERNEL_DIR
+cd $KERNEL_DIR
 git apply ../kernel.patch
 cd $WORKDIR
 
