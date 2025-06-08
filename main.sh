@@ -10,10 +10,11 @@ KERNEL_GIT="https://github.com/PixelOS-Devices/kernel_xiaomi_sm6150.git"
 KERNEL_BRANCH="fifteen"
 KERNEL_TYPE="vantom"
 
-# KernelSU
-KERNELSU_REPO="tiann/KernelSU"
+# KernelSU-Next
+KERNELSU_REPO="rifsxd/KernelSU-Next"
+KERNELSU_BRANCH="next"
 KSU_ENABLED="true"
-KSU_TARGET="v1.0.5"
+KSU_TARGET="v1.0.7"
 
 # Anykernel3
 ANYKERNEL3_GIT="https://github.com/SchweGELBin/AnyKernel3_davinci.git"
@@ -133,7 +134,7 @@ cd $KERNEL_DIR
 
 msg "KernelSU-Next"
 if [[ $KSU_ENABLED == "true" ]]; then
-	curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
+    curl -LSs "https://raw.githubusercontent.com/$KERNELSU_REPO/$KERNELSU_BRANCH/kernel/setup.sh" | bash -s $KSU_TARGET
 
     echo "CONFIG_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
     echo "CONFIG_HAVE_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
@@ -149,6 +150,11 @@ else
     echo "KernelSU Disabled"
     KERNELSU_VERSION="Disabled"
     sed -i "s/^CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION=\"-$KERNEL_NAME\"/" $DEVICE_DEFCONFIG_FILE
+fi
+
+msg "Next-SUSFS"
+if [[ $KSU_ENABLED == "true" ]]; then
+    curl -LSs "https://raw.githubusercontent.com/$KERNELSU_REPO/next-susfs/kernel/setup.sh" | bash -s next-susfs
 fi
 
 # Build
