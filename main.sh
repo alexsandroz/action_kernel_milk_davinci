@@ -1,8 +1,10 @@
 #!/usr/bin/env sh
 
+set -e
+
 # Changable Data
 # ------------------------------------------------------------
-set -e
+FULL_BUILD="true"
 
 # Kernel
 KERNEL_NAME="cazkernel"
@@ -12,9 +14,14 @@ KERNEL_TYPE="vantom"
 
 # KernelSU-Next
 KERNELSU_REPO="rifsxd/KernelSU-Next"
-KERNELSU_BRANCH="next"
+KERNELSU_BRANCH="next-susfs"
 KSU_ENABLED="true"
-KSU_TARGET="v1.0.7"
+KSU_TARGET="next-susfs"
+
+# SUSFS
+SUSFS_GIT="https://gitlab.com/simonpunk/susfs4ksu.git"
+SUSFS_BRANCH="kernel-4.14"
+SUSFS_ENABLED="true"
 
 # Anykernel3
 ANYKERNEL3_GIT="https://github.com/SchweGELBin/AnyKernel3_davinci.git"
@@ -35,6 +42,12 @@ msg() {
 	echo -e "\e[1;33m$*\e[0m"
 	echo
 }
+
+# Check if there is any whitespace in the PATH variable
+if echo "$PATH" | grep -q '[[:space:]]'; then
+    echo "Error: The PATH environment variable contains whitespace."
+    exit 1
+fi
 
 # Input Variables
 if [[ $1 == "KSU" ]]; then
@@ -69,13 +82,22 @@ fi
 
 msg "Variables"
 echo "KSU_ENABLED: $KSU_ENABLED"
+echo "SUSFS_ENABLED: $SUSFS_ENABLED"
 echo "KERNEL_GIT: $KERNEL_GIT"
 echo "KERNEL_BRANCH: $KERNEL_BRANCH"
 echo "DEVICE_DEFCONFIG: $DEVICE_DEFCONFIG"
 echo "COMMON_DEFCONFIG: $COMMON_DEFCONFIG"
+echo "FULL_BUILD: $FULL_BUILD"
 
 # Set variables
 WORKDIR="$(pwd)"
+
+if [[ $FULL_BUILD == "true" ]]; then
+    rm -rf $WORKDIR/$KERNEL_NAME
+    rm -rf $WORKDIR/Clang
+    rm -rf $WORKDIR/Anykernel3
+    rm -rf $WORKDIR/out   
+fi
 
 CLANG_DLINK="$(curl -s https://api.github.com/repos/$CLANG_REPO/releases/latest\
 | grep -wo "https.*" | grep Clang-.*.tar.gz | sed 's/.$//')"
@@ -102,23 +124,27 @@ cd $WORKDIR
 # Setup
 msg "Setup"
 
-msg "Clang"
-	mkdir -p Clang
-	aria2c -s16 -x16 -k1M $CLANG_DLINK -o Clang.tar.gz
-	tar -C Clang/ -zxvf Clang.tar.gz
-	rm -rf Clang.tar.gz
+if [ ! -d "Clang" ]; then
+    msg "Clang"
+    mkdir -p Clang
+    aria2c -s16 -x16 -k1M $CLANG_DLINK -o Clang.tar.gz
+    tar -C Clang/ -zxvf Clang.tar.gz
+    rm -rf Clang.tar.gz
+fi
 
 CLANG_VERSION="$($CLANG_DIR/clang --version | head -n 1 | cut -f1 -d "(" | sed 's/.$//')"
 CLANG_VERSION=${CLANG_VERSION::-3} # May get removed later
 LLD_VERSION="$($CLANG_DIR/ld.lld --version | head -n 1 | cut -f1 -d "(" | sed 's/.$//')"
 
-msg "Kernel"
-git clone --depth=1 $KERNEL_GIT -b $KERNEL_BRANCH $KERNEL_DIR
+if [ ! -d "$KERNEL_DIR" ]; then
+    msg "Kernel"
+    git clone --depth=1 $KERNEL_GIT -b $KERNEL_BRANCH $KERNEL_DIR
 
-msg "Applying Patches"
-cd $KERNEL_DIR
-git apply ../kernel.patch
-cd $WORKDIR
+    msg "Applying Patches"
+    cd $KERNEL_DIR
+    git apply $WORKDIR/kernel.patch
+    cd $WORKDIR
+fi
 
 KERNEL_VERSION=$(cat $KERNEL_DIR/Makefile | grep -w "VERSION =" | cut -d '=' -f 2 | cut -b 2-)\
 .$(cat $KERNEL_DIR/Makefile | grep -w "PATCHLEVEL =" | cut -d '=' -f 2 | cut -b 2-)\
@@ -132,13 +158,16 @@ TITLE=$KERNEL_NAME-$KERNEL_VERSION
 
 cd $KERNEL_DIR
 
-msg "KernelSU-Next"
 if [[ $KSU_ENABLED == "true" ]]; then
-    curl -LSs "https://raw.githubusercontent.com/$KERNELSU_REPO/$KERNELSU_BRANCH/kernel/setup.sh" | bash -s $KSU_TARGET
+    msg "KernelSU-Next"
 
-    echo "CONFIG_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
-    echo "CONFIG_HAVE_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
-    echo "CONFIG_KPROBE_EVENTS=y" >> $DEVICE_DEFCONFIG_FILE
+    if [ ! -d "$KERNEL_DIR/KernelSU-Next" ]; then
+        curl -LSs "https://raw.githubusercontent.com/$KERNELSU_REPO/$KERNELSU_BRANCH/kernel/setup.sh" | bash -s $KSU_TARGET
+
+        echo "CONFIG_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
+        echo "CONFIG_HAVE_KPROBES=y" >> $DEVICE_DEFCONFIG_FILE
+        echo "CONFIG_KPROBE_EVENTS=y" >> $DEVICE_DEFCONFIG_FILE
+    fi
 
     KSU_GIT_VERSION=$(cd KernelSU-Next && git rev-list --count HEAD)
     KERNELSU_VERSION=$(($KSU_GIT_VERSION + 10200))
@@ -150,6 +179,22 @@ else
     echo "KernelSU Disabled"
     KERNELSU_VERSION="Disabled"
     sed -i "s/^CONFIG_LOCALVERSION=.*/CONFIG_LOCALVERSION=\"-$KERNEL_NAME\"/" $DEVICE_DEFCONFIG_FILE
+fi
+
+
+if [[ $SUSFS_ENABLED == "true" ]]; then
+    msg "SUSFS"
+
+    if [ ! -d "$KERNEL_DIR/susfs4ksu" ]; then
+        git clone --depth=1 $SUSFS_GIT -b $SUSFS_BRANCH
+        
+        cp $KERNEL_DIR/susfs4ksu/kernel_patches/fs/* $KERNEL_DIR/fs/
+        cp $KERNEL_DIR/susfs4ksu/kernel_patches/include/linux/* $KERNEL_DIR/include/linux/
+
+        cd $KERNEL_DIR
+        git apply $WORKDIR/susfs.patch
+
+    fi    
 fi
 
 # Build
@@ -176,7 +221,9 @@ HOSTCXX=clang++ \
 LLVM=1 \
 LLVM_IAS=1"
 
-rm -rf out
+if [[ $FULL_BUILD == "true" ]]; then
+    rm -rf out
+fi
 
 if [[ ! $COMMON_DEFCONFIG == "" ]]; then
     make O=out $args "$COMMON_DEFCONFIG"
@@ -190,7 +237,9 @@ msg "Kernel version: $KERNEL_VERSION"
 # Package
 msg "Package"
 cd $WORKDIR
-git clone --depth=1 $ANYKERNEL3_GIT -b $ANYKERNEL3_BRANCH $WORKDIR/Anykernel3
+if [ ! -d "$WORKDIR/Anykernel3" ]; then
+    git clone --depth=1 $ANYKERNEL3_GIT -b $ANYKERNEL3_BRANCH $WORKDIR/Anykernel3
+fi
 cd $WORKDIR/Anykernel3
 cp $IMAGE .
 cp $DTB $WORKDIR/Anykernel3/dtb
