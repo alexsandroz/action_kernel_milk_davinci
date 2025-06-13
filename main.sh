@@ -270,7 +270,7 @@ echo "
 <br>
 
 - **[Kernel]($KERNEL_SOURCE) Version**: $KERNEL_VERSION
-- **[KernelSU-Next]($KERNELSU_SOURCE) Version**: $KERNELSU_VERSION
+- **[KernelSU-Next]($KERNELSU_SOURCE) Version**: $KSU_TARGET ($KERNELSU_VERSION)
 
 <br>
 
